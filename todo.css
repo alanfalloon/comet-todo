@@ -1,0 +1,45 @@
+body { padding: 0; margin: 0; color: #d2d2d2; background-color: #000; font-family: "Optima", "Helvetica Neue"; font-weight:200; font-size:14px }
+
+#header { height: 150px; }
+
+
+
+#entry-box { font-family: "Optima"; font-weight:200; font-size:14px }
+
+ul { margin: 0; padding: 0 }
+ul { list-style: none }
+
+ul li { clear: both; overflow:auto; margin-top: 8px}
+
+ul li .tags {
+    float: left;
+    width: 50%;
+    height: 10px;
+    margin-right: 8px;
+}
+
+.tag { 
+    padding: 0 16px 0 6px;
+    width: 54px;
+    margin-right: 2px;
+    float: right;
+}
+
+.tag1 {
+    background-color: #a00;
+}
+
+.tag2 {
+    background-color: #00b;
+}
+
+ul li .item {
+    float: left;
+    width: 45%;
+}
+
+#entry-form {
+    margin-left: 50%;
+    margin-top: 8px;
+    padding-left: 8px;
+}
