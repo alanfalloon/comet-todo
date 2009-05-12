@@ -11,9 +11,9 @@
       dojo.addOnLoad(function(){
         dojox.cometd.init("/cometd");
         dojox.cometd.subscribe("/User/*",function(message){ 
-      m = Model.make(message.data);
-    v = m.instantiate();
-      $("#todos").append(v.content);
+          m = $.App.Todo.make(message.data);
+          v = $.App.TodoView.make(m);
+          $("#todos").append(v.content);
         });
       });
     </script>
