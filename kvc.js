@@ -37,13 +37,34 @@ Prometheus = {
 
 Prometheus.Collection = Prometheus.Object.clone({
     // insert
-    // delete
+    // remove
     // get(idx)
     // set(idx, value)
+    // map(fn(idx, value))
+
+    EV_INSERT: 1,
+    EV_REMOVE: 2,
+
 
     insert: function(key, value) {
         this.content[key] = value;
-        this.notify("insert", key, value);
+        this.notify(this.EV_INSERT, key, value);
+    },
+
+    push: function(value) {
+        return this.insert(this.content.length, value);
+    },
+
+    pop: function() {
+        return this.remove(this.content.length-1);
+    },
+
+    remove: function(index) {
+        // TODO remove any observers here
+        var obj = this.content[index];
+        this.content.splice(index, 1);
+        this.notify(this.EV_REMOVE, index, obj);
+        return obj;
     },
 
     notify: function(action, index, value) {
@@ -55,15 +76,26 @@ Prometheus.Collection = Prometheus.Object.clone({
 
         
     __addSubscriber: function(sub, keyPath, cb) {
+        // TODO case where we are actually subscribring to the collection
+        // (empty keyPath)
+        if (keyPath.length === 0) {
+            this.subscribers.push(cb);
+            return;
+        }
+
+
         // this will implicitly subscribe to all of the objects in the
-        // collection
-        var key = keyPath[0];
-        
+        // collection        
         var self = this;
         // we have a longer keypath, need intermediate observers
         var bookkeeper = function(obj, action, index, value) {
-            alert("TODO: " + action + " " + index + " " + value);
-            obj.content[index].__addSubscriber(sub, keyPath, cb); 
+            if (action === self.EV_INSERT) {
+                value.__addSubscriber(sub, keyPath, cb); 
+            } else if (action === self.EV_REMOVE) {
+                value.__removeSubscriber(sub, keyPath, cb);
+            } else {
+                alert("TODO: " + action);
+            }
         };
         
         this.subscribers.push(bookkeeper);
@@ -112,6 +144,21 @@ Prometheus.Model = Prometheus.Object.clone({
         self.notify(key, _v, undefined);
     },
     
+    __removeSubscriber: function(sub, keyPath, cb) {
+        var key = keyPath[0];
+
+        if (keyPath.length == 1) {
+            // TODO add this method to Array.prototype
+            var idx = this.subscribers[key].indexOf(cb);
+            this.subscribers[key].splice(idx, 1);
+            // TODO perhaps convert back to normal value if no
+            // subscribers remain
+            return;
+        }
+
+        alert("TODO: not implemented");
+    },
+
     __addSubscriber: function(sub, keyPath, cb) {
         var key = keyPath[0];
         this.subscribers[key] = this.subscribers[key] || [];
@@ -163,6 +210,27 @@ Prometheus.View = Prometheus.Object.clone({
     }
 });
 
+Prometheus.CollectionView = Prometheus.Object.clone({
+    default_view: null,
+    on_insert: null,
+
+    subscribe: function(collection) {
+        var self = this;
+        var cb = function(coll, action, idx, obj) {
+            if (action === coll.EV_INSERT) {
+                var v = self.default_view.make(obj);
+                self.on_insert(v, coll, idx, obj);
+            };
+        };
+        collection.__addSubscriber(this, [], cb);
+    },
+
+    init: function(collection) {
+        this.subscribe(collection);
+    }
+
+});
+
 
 $(function() {
     var model = function(attrs) { return Prometheus.Model.make(attrs) };
@@ -187,7 +255,11 @@ $(function() {
     o1.subscribe(m1, "y.a");
 
     c = Prometheus.Collection.make();
-    v = Prometheus.View.subscribe(c, "x", function(a, b, c) { alert("WOW: " + c); });
-    c.insert(0, model({x: 9876}) );
 
-})();
+    var cb = function(a, b, c) { alert("WOW: " + c) };
+    v = Prometheus.View.subscribe(c, "x", cb);
+    c.insert(0, model({x: 9876}) );
+    //c.remove(0); 
+
+    c.__addSubscriber(v, [], function() { alert("WTF?") });
+});

@@ -12,8 +12,7 @@
         dojox.cometd.init("/cometd");
         dojox.cometd.subscribe("/User/*",function(message){ 
           m = $.App.Todo.make(message.data);
-          v = $.App.TodoView.make(m);
-          $("#todos").append(v.content);
+          $.App.todo_list.push(m);
         });
       });
     </script>
