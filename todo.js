@@ -4,7 +4,7 @@ $(function () {
     });
     
     var app = {
-        TodoView: $.View.clone({
+        TodoView: Prometheus.View.clone({
             init: function(model) {
                 var self = this;
 
@@ -17,9 +17,9 @@ $(function () {
             }
         }),
 
-        Todo: $.Model.clone({
+        Todo: Prometheus.Model.clone({
             init: function(title) {
-                $.Model.init.call(this);
+                Prometheus.Model.init.call(this);
                 this.title = title;
             }
         })
