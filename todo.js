@@ -3,46 +3,34 @@ $(function () {
     
     });
     
-    var todo_view = Prometheus.View.clone({
-        init: function(model) {
-            var self = this;
-            
-            var title_changed = function(obj, key, value) {
-                self.content.find(".item").text(value);
-            };
-            
-            this.content = $("<li>").append($("<div class='tags'></div>")).append($("<div class='item'>").text(model.title));
-            this.subscribe(model, "title", title_changed);
-            }
-    });
+    var div = function() { return $("<div></div>") };
 
-
-    var TodoListView = Prometheus.CollectionView.clone({
-        default_view: todo_view,
-        on_insert: function(v, coll, idx, obj) {
-            $("#todos").append(v.content);            
+    var make_class_decoration = function(view, css_class) {
+        return function(ev) {
+            if (ev.value) { view.addClass(css_class) } else { view.removeClass(css_class); }
         }
-    });
+    }
 
-    var todo_list = Prometheus.Collection.make();
 
-    var app = {
-        // "classes"
-        TodoListView: TodoListView,
-        TodoView: todo_view,
-        Todo: Prometheus.Model.clone({
-            init: function(title) {
-                Prometheus.Model.init.call(this);
-                this.title = title;
-            }
-        }),
+    // there is an event binding problem, because the events can't be bound
+    // until this element is added to the DOM
+    $.View.Todo = function(todo) {
+        var item = $.View.Mirror(todo, "title").addClass("item");
+        var tags = div().addClass("tags");
+        todo.subscribe("done", make_class_decoration(item, "done"));
+        return div().append(tags).append(item);
+    }
+    $.View.Todo.events = function(todo, view) {
+        view.find(".item").click(function() { todo.done = !todo.done })
+    }
 
-        // "instances"
-        todo_list: todo_list,
-        todo_list_view: TodoListView.make(todo_list)
+    todo_list = $.Collection.make();
+    var list_view = $.View.List(todo_list, $.View.Todo);
+//    $("ul li").live("click", function() { $(this).css("text-decoration", "line-through") });
 
-    };
 
+    // add the todo list to the main window
+    $("#entry-form").before(list_view);
 
     $("#entry-box").bind("keydown", function(e) {
         if (e.keyCode == 13) {
@@ -53,13 +41,16 @@ $(function () {
         }
     });
 
-    $.App = app;
 
-    m = app.Todo.make("this is an item");
-    todo_list.push(m);
-
-    m.title = "New title";
-    
+    dojo.require("dojox.cometd.longPollTransport");
+    dojo.addOnLoad(function(){
+        dojox.cometd.init("/cometd");
+        dojox.cometd.subscribe("/User/*",function(message){ 
+            // create a new record
+            m = $.Record.make({ title: message.data, done: false });
+            todo_list.push(m);
+        });
+    });
 
 });
 

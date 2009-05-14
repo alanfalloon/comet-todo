@@ -1,14 +1,14 @@
-initCollection = function() {
+$.module("Collection", function($) {
     // Basic Collection
-    Collection = function(elements) {
+    $.Collection = function(elements) {
         this.watches = {};
         this.subscribers = [];
-        this.content = elements;
+        this.content = elements || [];
     }
 
-    Collection.make = function(p) { return new Collection(p); }
+    $.Collection.make = function(p) { return new $.Collection(p); }
 
-    Collection.prototype = {
+    $.Collection.prototype = {
         notify: function(event) {
             $.each(this.subscribers, function(idx, callback) {
                 callback(event);
@@ -60,10 +60,10 @@ initCollection = function() {
     }
 
     return true;
-}
+})
 
 
-initCollection.test = function() {
+$.test("Collection", [], function($) {
     //
     m = Collection.make([2, 3]);
     subscribers = {
@@ -74,4 +74,4 @@ initCollection.test = function() {
     m.push(1);
     m.pop();
 
-}
+})

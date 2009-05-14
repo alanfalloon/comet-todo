@@ -38,6 +38,10 @@ ul li .item {
     width: 45%;
 }
 
+.item.done { 
+    text-decoration: line-through
+}
+
 #entry-form {
     margin-left: 50%;
     margin-top: 8px;

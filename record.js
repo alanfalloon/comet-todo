@@ -1,14 +1,27 @@
-initRecord = function() {
+
+$.module("Record", function($) {
     // Basic Record
-    Record = function(properties) {
+    $.Record = function(properties) {
         this.subscribers = {};
         this.properties = $.keys(properties);
         $.extend(this, properties);
     }
 
-    Record.make = function(p) { return new Record(p); }
+    $.Record.make = function(p) { return new $.Record(p); }
+    $.Record.fromJSON = function(json) {
+        return $.Record.make($.evalJSON(json));
+    }
 
-    Record.prototype = {
+    $.Record.prototype = {
+        toJSON: function() {
+            var tmp = {};
+            for (var idx=0; idx < this.properties.length; idx++) {
+                var key = this.properties[idx];
+                tmp[key] = this[key];
+            }
+            return $.toJSON(tmp);
+        },
+
         notify: function(event) {
             $.each(this.subscribers[event.key], function(idx, callback) {
                 callback(event);
@@ -111,11 +124,11 @@ initRecord = function() {
             $(this).bind(event_path, event_handler);
         }
 
-    };
+    }
 
-}
+});
 
-initRecord.test = function() {
+$.test("Record", [], function($) {
     test_model = Record.make({
         x: 99,
         y: Record.make({ z: 143 })
@@ -140,6 +153,6 @@ initRecord.test = function() {
     test_model.y = Record.make({ z: 81 });
     //old_y.z = 88;
     return true;
-}
+})
 
 
