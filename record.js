@@ -1,21 +1,14 @@
-
-$(function() {
-    // clone method for creating new prototypes; takes care of the setting
-    // prototype thing, etc.
-    var F = function(attrs) { $.extend(this, attrs) };
-    Object.prototype.clone = function(attrs) {
-        F.prototype = this;
-        return new F(attrs);
+initRecord = function() {
+    // Basic Record
+    Record = function(properties) {
+        this.subscribers = {};
+        this.properties = $.keys(properties);
+        $.extend(this, properties);
     }
 
-    // there are two ways to be
-    Model = Object.clone({
-        make: function(attrs) {
-            var obj = this.clone(attrs);
-            obj.subscribers = {};
-            return obj;
-        },
+    Record.make = function(p) { return new Record(p); }
 
+    Record.prototype = {
         notify: function(event) {
             $.each(this.subscribers[event.key], function(idx, callback) {
                 callback(event);
@@ -118,17 +111,20 @@ $(function() {
             $(this).bind(event_path, event_handler);
         }
 
-    });
+    };
 
-    test_model = Model.make({
+}
+
+initRecord.test = function() {
+    test_model = Record.make({
         x: 99,
-        y: Model.make({ z: 143 })
+        y: Record.make({ z: 143 })
     });
 
 
-    test_subscriber = Object.clone({
+    test_subscriber = {
         onchange: function(d) { alert("YAY!" + d.value); return false; }
-    });
+    };
     //subs = test_model.subscribe(test_subscriber.onchange, "x");
     subs = test_model.subscribe("y.z", test_subscriber.onchange);
     subs = test_model.subscribe("y.z", test_subscriber.onchange);
@@ -141,7 +137,9 @@ $(function() {
     //$.each(subs, function(idx, e) { $(e[0]).unbind($(e[1], e[2])) });
     //test_model.x = 44;
     //old_y = test_model.y;
-    test_model.y = Model.make({ z: 81 });
+    test_model.y = Record.make({ z: 81 });
     //old_y.z = 88;
-});
+    return true;
+}
+
 
