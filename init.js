@@ -22,5 +22,6 @@ $(function() {
     };
 
     install(initRecord);
-    install(initCollection, true);
+    install(initCollection);
+    install(initView, true);
 });
